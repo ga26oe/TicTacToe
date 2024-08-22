@@ -1,5 +1,3 @@
-const prompt = require("prompt-sync")();
-
 function Game_Board() {
   const board = [
     [" ", " ", " "],
@@ -26,6 +24,7 @@ function Game_Board() {
     console.log();
   };
 
+  // Uses a magic square algorithm to check if there are three tokens in a row
   function checkWinner() {
     const magicSquareBoard = [
       [8, 1, 6],
@@ -66,6 +65,8 @@ function Game_Board() {
       return "X Wins";
     } else if (checkSum(oValues)) {
       return "O Wins";
+    } else if (xValues.length + oValues.length === 9) {
+      return "Draw";
     } else {
       return "No Winner Yet";
     }
@@ -78,6 +79,17 @@ function Game_Controller(
   playerOneName = "Player One",
   playerTwoName = "Player Two"
 ) {
+  const players = [
+    {
+      name: playerOneName,
+      token: "X",
+    },
+    {
+      name: playerTwoName,
+      token: "O",
+    },
+  ];
+
   const game = Game_Board();
   const boardElement = document.getElementById("board");
   const statusElement = document.getElementById("status");
@@ -90,10 +102,11 @@ function Game_Controller(
     boardElement.innerHTML = "";
     const board = game.getBoard();
     board.forEach((row, rowIndex) => {
-      board.forEach((col, colIndex) => {
+      row.forEach((cell, colIndex) => {
         const cellElement = document.createElement("div");
         cellElement.classList.add("cell");
-        cellElement.addEventListener("click,", () =>
+        cellElement.textContent = cell;
+        cellElement.addEventListener("click", () =>
           handleCellClick(rowIndex, colIndex)
         );
         boardElement.appendChild(cellElement);
@@ -109,29 +122,22 @@ function Game_Controller(
   };
 
   const handleCellClick = (row, col) => {
-    if (game.updateBoard(row, col, token)) {
+    if (game.updateBoard(row, col, activePlayer.token)) {
       renderBoard();
       const result = game.checkWinner();
       if (result === "No Winner Yet") {
         switchPlayerTurn();
         updateStatus(`${activePlayer}'s turn`);
       } else {
-        updateStatus(result);
+        updateStatus(
+          result === "Draw"
+            ? "It's a Draw"
+            : `${result}! ${activePlayer.name} is the winner!`
+        );
         disableBoard();
       }
     }
   };
-
-  const players = [
-    {
-      name: playerOneName,
-      token: "X",
-    },
-    {
-      name: playerTwoName,
-      token: "O",
-    },
-  ];
 
   let activePlayer = players[0];
 
@@ -139,57 +145,14 @@ function Game_Controller(
     activePlayer = activePlayer === players[0] ? players[1] : players[0];
   };
 
-  const getActivePlayer = () => activePlayer;
-
-  const printNewRound = () => {
-    game.displayBoard();
-    console.log(
-      `${getActivePlayer().name}'s turn (${
-        getActivePlayer().token
-      }). Enter your move (row and column).`
-    );
+  const init = () => {
+    renderBoard();
+    updateStatus(`${activePlayer.name}'s turn`);
   };
 
-  const makeMove = () => {
-    while (true) {
-      const input = prompt("Enter your move (row,column) ").split(",");
-      const row = parseInt(input[0], 10);
-      const column = parseInt(input[1], 10);
-
-      if (!isNaN(row) && !isNaN(column)) {
-        if (game.updateBoard(row, column, getActivePlayer().token)) {
-          return;
-        } else {
-          console.log("Invalid Move, Try Again.");
-        }
-      }
-    }
-  };
-
-  const playGame = () => {
-    let gameOver = false;
-    while (!gameOver) {
-      printNewRound();
-      makeMove();
-      const result = game.checkWinner();
-      if (result !== "No Winner Yet") {
-        game.displayBoard();
-        console.log(result);
-        gameOver = true;
-      } else if (!game.getBoard().flat().includes(" ")) {
-        game.displayBoard();
-        console.log("It's a Draw");
-        gameOver = true;
-      } else {
-        switchPlayerTurn();
-      }
-    }
-  };
-
-  return {
-    playGame,
-  };
+  return { init };
 }
-
-const controller = Game_Controller("Alice", "Bob");
-controller.playGame();
+document.addEventListener("DOMContentLoaded", () => {
+  const startGame = Game_Controller("Alice", "Bob");
+  startGame.init();
+});
