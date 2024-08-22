@@ -8,7 +8,7 @@ function Game_Board() {
       [" ", " ", " "],
     ];
   }
-  const getBoard = () => board;
+  const getBoard = () => board.map((row) => [...row]); //returning a deep copy
 
   const updateBoard = (row, col, token) => {
     if (row >= 0 && row < 3 && col >= 0 && col < 3 && board[row][col] === " ") {
@@ -20,6 +20,18 @@ function Game_Board() {
 
   const resetBoard = () => {
     board = createEmptyBoard();
+  };
+
+  const getAvailableMoves = () => {
+    let moves = [];
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (board[i][j] === " ") {
+          moves.push({ row: i, col: j });
+        }
+      }
+    }
+    return moves;
   };
 
   // Uses a magic square algorithm to check if there are three tokens in a row
@@ -70,13 +82,10 @@ function Game_Board() {
     }
   }
 
-  return { getBoard, updateBoard, resetBoard, checkWinner };
+  return { getBoard, updateBoard, getAvailableMoves, resetBoard, checkWinner };
 }
 
-function Game_Controller(
-  playerOneName = "Player One",
-  playerTwoName = "Player Two"
-) {
+function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
   const players = [
     {
       name: playerOneName,
@@ -119,8 +128,6 @@ function Game_Controller(
     }
   };
 
-  const enableBoard = () => {};
-
   const handleCellClick = (row, col) => {
     if (game.updateBoard(row, col, activePlayer.token)) {
       renderBoard();
@@ -128,6 +135,10 @@ function Game_Controller(
       if (result === "No Winner Yet") {
         switchPlayerTurn();
         updateStatus(`${activePlayer}'s turn`);
+
+        if (activePlayer.name === "AI") {
+          setTimeout(aiMove, 500);
+        }
       } else {
         updateStatus(
           result === "Draw"
@@ -152,6 +163,44 @@ function Game_Controller(
     updateStatus(`${activePlayer.name}'s turn`);
   };
 
+  const aiMove = () => {
+    const availableMoves = getAvailableMoves();
+    if (availableMoves.length > 0) {
+      const randomMove =
+        availableMoves[Math.floor(Math.random() * availableMoves.length)];
+      handleCellClick(randomMove.row, randomMove.col); // ?
+    }
+  };
+
+  const getBestMove = (board, player) => {
+    let bestScore = player === "0" ? -Infinity : Infinity; // If the player is 0, then the are the maximizer and their score is set to - inf, with the goal to maximize their score
+    let bestMove;
+
+    const availableMoves = game.getAvailableMoves();
+
+    for (let move of availableMoves) {
+      board[move.row][move.col] = player;
+      let score = minimax(board, 0, false);
+      board[move.row][move.col] = " ";
+      if (player === "0") {
+        if (score > bestScore) {
+          bestScore = score;
+          bestMove = move;
+        } else {
+          // For the minimizing Player
+          if (score < bestScore) {
+            bestScore = score;
+            bestMove = move;
+          }
+        }
+      }
+    }
+  };
+
+  const minimax = (board, depth, isMaximizing) => {
+    return 1;
+  };
+
   const init = () => {
     renderBoard();
     updateStatus(`${activePlayer.name}'s turn`);
@@ -160,7 +209,7 @@ function Game_Controller(
   return { init, refreshBoard };
 }
 document.addEventListener("DOMContentLoaded", () => {
-  const startGame = Game_Controller("Player 1", "Player 2");
+  const startGame = Game_Controller("Player 1", "AI");
   startGame.init();
 
   const refreshButton = document.getElementById("refreshButton");
