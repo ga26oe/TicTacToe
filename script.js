@@ -1,10 +1,13 @@
 function Game_Board() {
-  const board = [
-    [" ", " ", " "],
-    [" ", " ", " "],
-    [" ", " ", " "],
-  ];
+  let board = createEmptyBoard();
 
+  function createEmptyBoard() {
+    return [
+      [" ", " ", " "],
+      [" ", " ", " "],
+      [" ", " ", " "],
+    ];
+  }
   const getBoard = () => board;
 
   const updateBoard = (row, col, token) => {
@@ -15,13 +18,8 @@ function Game_Board() {
     return false;
   };
 
-  const displayBoard = () => {
-    console.log("\n 0 1 2");
-    for (let i = 0; i < 3; i++) {
-      console.log(`${i} ${board[i].join("|")}`);
-      if (i < 2) console.log("  -+-+-");
-    }
-    console.log();
+  const resetBoard = () => {
+    board = createEmptyBoard();
   };
 
   // Uses a magic square algorithm to check if there are three tokens in a row
@@ -72,7 +70,7 @@ function Game_Board() {
     }
   }
 
-  return { getBoard, updateBoard, checkWinner, displayBoard };
+  return { getBoard, updateBoard, resetBoard, checkWinner };
 }
 
 function Game_Controller(
@@ -121,6 +119,8 @@ function Game_Controller(
     }
   };
 
+  const enableBoard = () => {};
+
   const handleCellClick = (row, col) => {
     if (game.updateBoard(row, col, activePlayer.token)) {
       renderBoard();
@@ -145,14 +145,26 @@ function Game_Controller(
     activePlayer = activePlayer === players[0] ? players[1] : players[0];
   };
 
+  const refreshBoard = () => {
+    game.resetBoard();
+    activePlayer = players[0];
+    renderBoard();
+    updateStatus(`${activePlayer.name}'s turn`);
+  };
+
   const init = () => {
     renderBoard();
     updateStatus(`${activePlayer.name}'s turn`);
   };
 
-  return { init };
+  return { init, refreshBoard };
 }
 document.addEventListener("DOMContentLoaded", () => {
-  const startGame = Game_Controller("Alice", "Bob");
+  const startGame = Game_Controller("Player 1", "Player 2");
   startGame.init();
+
+  const refreshButton = document.getElementById("refreshButton");
+  refreshButton.addEventListener("click", () => {
+    startGame.refreshBoard();
+  });
 });
