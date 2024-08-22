@@ -164,11 +164,11 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
   };
 
   const aiMove = () => {
-    const availableMoves = getAvailableMoves();
+    const availableMoves = game.getAvailableMoves();
     if (availableMoves.length > 0) {
       const randomMove =
         availableMoves[Math.floor(Math.random() * availableMoves.length)];
-      handleCellClick(randomMove.row, randomMove.col); // ?
+      handleCellClick(randomMove.row, randomMove.col); //
     }
   };
 
