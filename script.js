@@ -134,7 +134,7 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
       const result = game.checkWinner();
       if (result === "No Winner Yet") {
         switchPlayerTurn();
-        updateStatus(`${activePlayer}'s turn`);
+        updateStatus(`${activePlayer.name}'s turn`);
 
         if (activePlayer.name === "AI") {
           setTimeout(aiMove, 500);
@@ -163,26 +163,18 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
     updateStatus(`${activePlayer.name}'s turn`);
   };
 
-  const aiMove = () => {
-    const availableMoves = game.getAvailableMoves();
-    if (availableMoves.length > 0) {
-      const randomMove =
-        availableMoves[Math.floor(Math.random() * availableMoves.length)];
-      handleCellClick(randomMove.row, randomMove.col); //
-    }
-  };
-
   const getBestMove = (board, player) => {
-    let bestScore = player === "0" ? -Infinity : Infinity; // If the player is 0, then the are the maximizer and their score is set to - inf, with the goal to maximize their score
+    let bestScore = player === players[1].token ? -Infinity : Infinity; // If the player is 0, then the are the maximizer and their score is set to - inf, with the goal to maximize their score
     let bestMove;
 
     const availableMoves = game.getAvailableMoves();
 
     for (let move of availableMoves) {
       board[move.row][move.col] = player;
-      let score = minimax(board, 0, false);
+      let score = minimax(board, 0, player === players[1].token);
       board[move.row][move.col] = " ";
-      if (player === "0") {
+
+      if (player === players[1].token) {
         if (score > bestScore) {
           bestScore = score;
           bestMove = move;
@@ -195,10 +187,64 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
         }
       }
     }
+    return bestMove;
+  };
+
+  const aiMove = () => {
+    // Generate Random AI Move
+    /*     const availableMoves = game.getAvailableMoves();
+    if (availableMoves.length > 0) {
+      const randomMove =
+        availableMoves[Math.floor(Math.random() * availableMoves.length)];
+      handleCellClick(randomMove.row, randomMove.col); //
+    } */
+
+    const bestMove = getBestMove(game.getBoard(), activePlayer.token);
+    if (bestMove) {
+      handleCellClick(bestMove.row, bestMove.col);
+    }
+  };
+
+  let scores = {
+    [players[0].token]: 1,
+    [players[1].token]: -1,
+    Draw: 0,
   };
 
   const minimax = (board, depth, isMaximizing) => {
-    return 1;
+    let result = game.checkWinner();
+    if (result !== "No Winner Yet") {
+      return scores[result.split(" ")[0]] || scores.Draw;
+      //this is checking terminal state
+    }
+
+    if (isMaximizing) {
+      let bestScore = -Infinity;
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (board[i][j] === " ") {
+            board[i][j] = players[1].token;
+            let score = minimax(board, depth + 1, false);
+            board[i][j] = "";
+            bestScore = Math.max(score, bestScore);
+          }
+        }
+      }
+      return bestScore;
+    } else {
+      let bestScore = Infinity;
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (board[i][j] === " ") {
+            board[i][j] = players[0].token;
+            let score = minimax(board, depth + 1, true);
+            board[i][j] = "";
+            bestScore = Math.min(score, bestScore);
+          }
+        }
+      }
+      return bestScore;
+    }
   };
 
   const init = () => {
