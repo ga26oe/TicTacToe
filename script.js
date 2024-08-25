@@ -8,7 +8,8 @@ function Game_Board() {
       [" ", " ", " "],
     ];
   }
-  const getBoard = () => board.map((row) => [...row]); //returning a deep copy
+
+  const getBoard = () => board.map((row) => [...row]);
 
   const updateBoard = (row, col, token) => {
     if (row >= 0 && row < 3 && col >= 0 && col < 3 && board[row][col] === " ") {
@@ -34,52 +35,66 @@ function Game_Board() {
     return moves;
   };
 
-  // Uses a magic square algorithm to check if there are three tokens in a row
   function checkWinner() {
-    const magicSquareBoard = [
-      [8, 1, 6],
-      [3, 5, 7],
-      [4, 9, 2],
+    const lines = [
+      [
+        [0, 0],
+        [0, 1],
+        [0, 2],
+      ],
+      [
+        [1, 0],
+        [1, 1],
+        [1, 2],
+      ],
+      [
+        [2, 0],
+        [2, 1],
+        [2, 2],
+      ],
+      [
+        [0, 0],
+        [1, 0],
+        [2, 0],
+      ],
+      [
+        [0, 1],
+        [1, 1],
+        [2, 1],
+      ],
+      [
+        [0, 2],
+        [1, 2],
+        [2, 2],
+      ],
+      [
+        [0, 0],
+        [1, 1],
+        [2, 2],
+      ],
+      [
+        [0, 2],
+        [1, 1],
+        [2, 0],
+      ],
     ];
 
-    const currentBoard = getBoard();
-
-    let xValues = [];
-    let oValues = [];
-
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < 3; j++) {
-        if (currentBoard[i][j] === "X") {
-          xValues.push(magicSquareBoard[i][j]);
-        } else if (currentBoard[i][j] === "O") {
-          oValues.push(magicSquareBoard[i][j]);
-        }
+    for (let line of lines) {
+      const [a, b, c] = line;
+      if (
+        board[a[0]][a[1]] !== " " &&
+        board[a[0]][a[1]] === board[b[0]][b[1]] &&
+        board[a[0]][a[1]] === board[c[0]][c[1]]
+      ) {
+        return board[a[0]][a[1]] + " Wins";
       }
     }
 
-    const checkSum = (values) => {
-      if (values.length < 3) return false;
-
-      for (let a = 0; a < values.length; a++) {
-        for (let b = a + 1; b < values.length; b++) {
-          for (let c = b + 1; c < values.length; c++) {
-            if (values[a] + values[b] + values[c] === 15) {
-              return true;
-            }
-          }
-        }
-      }
-    };
-
-    if (checkSum(xValues)) {
-      return "X Wins";
-    } else if (checkSum(oValues)) {
-      return "O Wins";
-    } else if (xValues.length + oValues.length === 9) {
+    if (getAvailableMoves().length === 0) {
       return "Draw";
-    } else {
-      return "No Winner Yet";
     }
+
+    return "No Winner Yet";
   }
 
   return { getBoard, updateBoard, getAvailableMoves, resetBoard, checkWinner };
@@ -87,22 +102,19 @@ function Game_Board() {
 
 function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
   const players = [
-    {
-      name: playerOneName,
-      token: "X",
-    },
-    {
-      name: playerTwoName,
-      token: "O",
-    },
+    { name: playerOneName, token: "X" },
+    { name: playerTwoName, token: "O" },
   ];
 
   const game = Game_Board();
   const boardElement = document.getElementById("board");
   const statusElement = document.getElementById("status");
 
+  let activePlayer = players[0];
+
   const updateStatus = (message) => {
     statusElement.textContent = message;
+    console.log("Status updated:", message); // Debug log
   };
 
   const renderBoard = () => {
@@ -119,6 +131,7 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
         boardElement.appendChild(cellElement);
       });
     });
+    console.log("Board rendered:", board); // Debug log
   };
 
   const disableBoard = () => {
@@ -129,14 +142,17 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
   };
 
   const handleCellClick = (row, col) => {
+    console.log(`Cell clicked: row ${row}, col ${col}`); // Debug log
     if (game.updateBoard(row, col, activePlayer.token)) {
       renderBoard();
       const result = game.checkWinner();
+      console.log("Winner check result:", result); // Debug log
       if (result === "No Winner Yet") {
         switchPlayerTurn();
         updateStatus(`${activePlayer.name}'s turn`);
 
         if (activePlayer.name === "AI") {
+          console.log("AI's turn, triggering AI move"); // Debug log
           setTimeout(aiMove, 500);
         }
       } else {
@@ -150,10 +166,9 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
     }
   };
 
-  let activePlayer = players[0];
-
   const switchPlayerTurn = () => {
     activePlayer = activePlayer === players[0] ? players[1] : players[0];
+    console.log("Switched to:", activePlayer.name); // Debug log
   };
 
   const refreshBoard = () => {
@@ -163,53 +178,50 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
     updateStatus(`${activePlayer.name}'s turn`);
   };
 
-  const getBestMove = (board, player) => {
-    let bestScore = player === players[0].token ? -Infinity : Infinity; // If the player is 0, then the are the maximizer and their score is set to - inf, with the goal to maximize their score
-    let bestMove;
-
+  const getBestMove = () => {
+    let bestScore = -Infinity;
+    let bestMove = null;
     const availableMoves = game.getAvailableMoves();
+    console.log("Available moves:", availableMoves);
 
     for (let move of availableMoves) {
-      board[move.row][move.col] = player;
-
-      // Now We call minimax algorithm
-      let score = minimax(board, 0, player === players[0].token);
-      board[move.row][move.col] = " ";
-
-      if (player === players[0].token) {
-        if (score > bestScore) {
-          bestScore = score;
-          bestMove = move;
-        }
-      } else {
-        if (score < bestScore) {
-          bestScore = score;
-          bestMove = move;
-        }
+      const board = game.getBoard();
+      board[move.row][move.col] = players[1].token; // AI's token
+      const score = minimax(board, 0, false);
+      board[move.row][move.col] = " "; // Undo the move
+      console.log(`Move: (${move.row}, ${move.col}), Score: ${score}`);
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = move;
       }
-
-      return bestMove;
     }
+
+    console.log("Best move:", bestMove, "with score:", bestScore);
+    return bestMove;
   };
 
   const aiMove = () => {
-    const bestMove = getBestMove(game.getBoard());
+    console.log("AI is thinking...");
+    const bestMove = getBestMove();
     if (bestMove) {
+      console.log("AI chose move:", bestMove);
       handleCellClick(bestMove.row, bestMove.col);
+    } else {
+      console.log("No valid moves for AI");
     }
   };
 
   const scores = {
-    [players[1].token]: 1,
-    [players[0].token]: -1,
+    "O Wins": 1,
+    "X Wins": -1,
     Draw: 0,
   };
 
   const minimax = (board, depth, isMaximizing) => {
-    let result = game.checkWinner();
-    if (result !== "No Winner Yet") {
-      return scores[result.split(" ")[0]] || scores.Draw;
-      //this is checking terminal state
+    const result = checkWinnerForMinimax(board);
+
+    if (result !== null) {
+      return scores[result];
     }
 
     if (isMaximizing) {
@@ -217,8 +229,8 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
       for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 3; j++) {
           if (board[i][j] === " ") {
-            board[i][j] = players[1].token;
-            let score = minimax(board, depth + 1, false); // the next move is minimizing
+            board[i][j] = players[1].token; // AI's token
+            let score = minimax(board, depth + 1, false);
             board[i][j] = " ";
             bestScore = Math.max(score, bestScore);
           }
@@ -230,7 +242,7 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
       for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 3; j++) {
           if (board[i][j] === " ") {
-            board[i][j] = players[0].token;
+            board[i][j] = players[0].token; // Human's token
             let score = minimax(board, depth + 1, true);
             board[i][j] = " ";
             bestScore = Math.min(score, bestScore);
@@ -241,6 +253,67 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
     }
   };
 
+  const checkWinnerForMinimax = (board) => {
+    const lines = [
+      [
+        [0, 0],
+        [0, 1],
+        [0, 2],
+      ],
+      [
+        [1, 0],
+        [1, 1],
+        [1, 2],
+      ],
+      [
+        [2, 0],
+        [2, 1],
+        [2, 2],
+      ],
+      [
+        [0, 0],
+        [1, 0],
+        [2, 0],
+      ],
+      [
+        [0, 1],
+        [1, 1],
+        [2, 1],
+      ],
+      [
+        [0, 2],
+        [1, 2],
+        [2, 2],
+      ],
+      [
+        [0, 0],
+        [1, 1],
+        [2, 2],
+      ],
+      [
+        [0, 2],
+        [1, 1],
+        [2, 0],
+      ],
+    ];
+    for (let line of lines) {
+      const [a, b, c] = line;
+      if (
+        board[a[0]][a[1]] !== " " &&
+        board[a[0]][a[1]] === board[b[0]][b[1]] &&
+        board[a[0]][a[1]] === board[c[0]][c[1]]
+      ) {
+        return board[a[0]][a[1]] === "X" ? "X Wins" : "O Wins";
+      }
+    }
+
+    if (board.every((row) => row.every((cell) => cell !== " "))) {
+      return "Draw";
+    }
+
+    return null;
+  };
+
   const init = () => {
     renderBoard();
     updateStatus(`${activePlayer.name}'s turn`);
@@ -248,20 +321,15 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
 
   return { init, refreshBoard };
 }
+
 document.addEventListener("DOMContentLoaded", () => {
-  const startGame = Game_Controller("Player ", "AI");
+  console.log("DOM loaded, starting game"); // Debug log
+  const startGame = Game_Controller("Player One", "AI");
   startGame.init();
 
   const refreshButton = document.getElementById("refreshButton");
   refreshButton.addEventListener("click", () => {
+    console.log("Refresh button clicked"); // Debug log
     startGame.refreshBoard();
   });
 });
-
-// Generate Random AI Move
-/*     const availableMoves = game.getAvailableMoves();
-    if (availableMoves.length > 0) {
-      const randomMove =
-        availableMoves[Math.floor(Math.random() * availableMoves.length)];
-      handleCellClick(randomMove.row, randomMove.col); //
-    } */
