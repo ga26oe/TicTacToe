@@ -8,8 +8,7 @@ function Game_Board() {
       [" ", " ", " "],
     ];
   }
-
-  const getBoard = () => board.map((row) => [...row]);
+  const getBoard = () => board.map((row) => [...row]); //returning a deep copy
 
   const updateBoard = (row, col, token) => {
     if (row >= 0 && row < 3 && col >= 0 && col < 3 && board[row][col] === " ") {
@@ -102,8 +101,14 @@ function Game_Board() {
 
 function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
   const players = [
-    { name: playerOneName, token: "X" },
-    { name: playerTwoName, token: "O" },
+    {
+      name: playerOneName,
+      token: "X",
+    },
+    {
+      name: playerTwoName,
+      token: "O",
+    },
   ];
 
   const game = Game_Board();
@@ -114,7 +119,6 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
 
   const updateStatus = (message) => {
     statusElement.textContent = message;
-    console.log("Status updated:", message); // Debug log
   };
 
   const renderBoard = () => {
@@ -131,7 +135,6 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
         boardElement.appendChild(cellElement);
       });
     });
-    console.log("Board rendered:", board); // Debug log
   };
 
   const disableBoard = () => {
@@ -142,17 +145,14 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
   };
 
   const handleCellClick = (row, col) => {
-    console.log(`Cell clicked: row ${row}, col ${col}`); // Debug log
     if (game.updateBoard(row, col, activePlayer.token)) {
       renderBoard();
       const result = game.checkWinner();
-      console.log("Winner check result:", result); // Debug log
       if (result === "No Winner Yet") {
         switchPlayerTurn();
         updateStatus(`${activePlayer.name}'s turn`);
 
         if (activePlayer.name === "AI") {
-          console.log("AI's turn, triggering AI move"); // Debug log
           setTimeout(aiMove, 500);
         }
       } else {
@@ -168,7 +168,6 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
 
   const switchPlayerTurn = () => {
     activePlayer = activePlayer === players[0] ? players[1] : players[0];
-    console.log("Switched to:", activePlayer.name); // Debug log
   };
 
   const refreshBoard = () => {
@@ -181,8 +180,8 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
   const getBestMove = () => {
     let bestScore = -Infinity;
     let bestMove = null;
+
     const availableMoves = game.getAvailableMoves();
-    console.log("Available moves:", availableMoves);
 
     for (let move of availableMoves) {
       const board = game.getBoard();
@@ -196,18 +195,13 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
       }
     }
 
-    console.log("Best move:", bestMove, "with score:", bestScore);
     return bestMove;
   };
 
   const aiMove = () => {
-    console.log("AI is thinking...");
     const bestMove = getBestMove();
     if (bestMove) {
-      console.log("AI chose move:", bestMove);
       handleCellClick(bestMove.row, bestMove.col);
-    } else {
-      console.log("No valid moves for AI");
     }
   };
 
@@ -218,10 +212,11 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
   };
 
   const minimax = (board, depth, isMaximizing) => {
+    /* let result = game.checkWinner(); */
     const result = checkWinnerForMinimax(board);
 
     if (result !== null) {
-      return scores[result];
+      return scores[result] || 0;
     }
 
     if (isMaximizing) {
@@ -229,7 +224,7 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
       for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 3; j++) {
           if (board[i][j] === " ") {
-            board[i][j] = players[1].token; // AI's token
+            board[i][j] = players[1].token; // AI's token (O)
             let score = minimax(board, depth + 1, false);
             board[i][j] = " ";
             bestScore = Math.max(score, bestScore);
@@ -242,7 +237,7 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
       for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 3; j++) {
           if (board[i][j] === " ") {
-            board[i][j] = players[0].token; // Human's token
+            board[i][j] = players[0].token; // Human's token (X)
             let score = minimax(board, depth + 1, true);
             board[i][j] = " ";
             bestScore = Math.min(score, bestScore);
@@ -321,15 +316,20 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
 
   return { init, refreshBoard };
 }
-
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM loaded, starting game"); // Debug log
-  const startGame = Game_Controller("Player One", "AI");
+  const startGame = Game_Controller("Player ", "AI");
   startGame.init();
 
   const refreshButton = document.getElementById("refreshButton");
   refreshButton.addEventListener("click", () => {
-    console.log("Refresh button clicked"); // Debug log
     startGame.refreshBoard();
   });
 });
+
+// Generate Random AI Move
+/*     const availableMoves = game.getAvailableMoves();
+    if (availableMoves.length > 0) {
+      const randomMove =
+        availableMoves[Math.floor(Math.random() * availableMoves.length)];
+      handleCellClick(randomMove.row, randomMove.col); //
+    } */
