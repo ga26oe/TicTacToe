@@ -193,15 +193,15 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
   };
 
   const aiMove = () => {
-    const bestMove = getBestMove(game.getBoard(), activePlayer.token);
+    const bestMove = getBestMove(game.getBoard());
     if (bestMove) {
       handleCellClick(bestMove.row, bestMove.col);
     }
   };
 
   const scores = {
-    [players[0].token]: 1,
-    [players[1].token]: -1,
+    [players[1].token]: 1,
+    [players[0].token]: -1,
     Draw: 0,
   };
 
@@ -217,7 +217,7 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
       for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 3; j++) {
           if (board[i][j] === " ") {
-            board[i][j] = players[0].token;
+            board[i][j] = players[1].token;
             let score = minimax(board, depth + 1, false); // the next move is minimizing
             board[i][j] = " ";
             bestScore = Math.max(score, bestScore);
@@ -230,7 +230,7 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
       for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 3; j++) {
           if (board[i][j] === " ") {
-            board[i][j] = players[1].token;
+            board[i][j] = players[0].token;
             let score = minimax(board, depth + 1, true);
             board[i][j] = " ";
             bestScore = Math.min(score, bestScore);
