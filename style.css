@@ -51,10 +51,15 @@ h6 {
 body {
   background-color: var(--webPageColor);
   color: var(--textColor);
-  position: absolute;
+  /*   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -60%);
+  transform: translate(-50%, -60%); */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+
   font-family: monospace;
 }
 
@@ -92,22 +97,26 @@ body {
 
 .game-container {
   text-align: center;
-  font-family: Arial, sans-serif;
+  font-family: monospace;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  width: 100%;
+  max-width: 600px;
 }
 .board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-gap: 0.8rem;
   margin: 20px auto;
-  width: 310px;
+  width: 100%;
+  max-width: 310px;
 }
 
 .cell {
-  width: 100px;
-  height: 100px;
+  /*   width: 100px;
+  height: 100px; */
+  aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -203,4 +212,25 @@ svg {
 .footer a:hover {
   text-decoration: underline;
   color: var(--xColor);
+}
+
+@media (max-width: 400px) {
+  .board {
+    grid-gap: 0.5rem;
+  }
+  .cell {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 300px) {
+  .typewriterHeader h1 {
+    font-size: 0.8rem;
+  }
+  .board {
+    grid-gap: 0.3rem;
+  }
+  .cell {
+    font-size: 1.5rem;
+  }
 }

@@ -343,7 +343,6 @@ document.addEventListener("DOMContentLoaded", () => {
       handleCellClick(randomMove.row, randomMove.col); //
     } */
 const cells = document.querySelectorAll(".cell.taken");
-
 cells.forEach((cell) => {
   const span = cell.querySelector("span");
   if (
