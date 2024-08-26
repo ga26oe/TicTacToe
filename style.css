@@ -191,3 +191,16 @@ svg {
   visibility: visible;
   margin-left: 8px; /* Adds space between the SVG and the text */
 }
+.footer p {
+  font-family: monospace;
+  align-items: flex-end;
+  color: var(--textColor);
+}
+.footer a {
+  text-decoration: none;
+  color: var(--textColor);
+}
+.footer a:hover {
+  text-decoration: underline;
+  color: var(--xColor);
+}
