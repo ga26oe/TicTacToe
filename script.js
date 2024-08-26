@@ -127,23 +127,20 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
     board.forEach((row, rowIndex) => {
       row.forEach((cell, colIndex) => {
         const cellElement = document.createElement("div");
-        cellElement.classList.add("cell");
-        cellElement.textContent = cell;
-
-        if (cell === "X") {
-          cellElement.classList.add("x");
-        } else if (cell === "O") {
-          cellElement.classList.add("o");
+        cellElement.className = "cell";
+        if (cell !== " ") {
+          cellElement.classList.add("taken", cell.toLowerCase());
+          const span = document.createElement("span");
+          span.textContent = cell;
+          cellElement.appendChild(span);
         }
 
-        /*         if (cell !== "") {
-          cellElement.classList.add("taken");
-          cellElement.classList.add(cell.toLowerCase());
-        } */
+        if (cell === " ") {
+          cellElement.addEventListener("click", () =>
+            handleCellClick(rowIndex, colIndex)
+          );
+        }
 
-        cellElement.addEventListener("click", () =>
-          handleCellClick(rowIndex, colIndex)
-        );
         boardElement.appendChild(cellElement);
       });
     });
@@ -186,7 +183,7 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
     game.resetBoard();
     activePlayer = players[0];
     renderBoard();
-    updateStatus(`${activePlayer.name}'s turn`);
+    updateStatus(`${activePlayer.name} turn`);
   };
 
   const getBestMove = () => {
@@ -323,13 +320,13 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
 
   const init = () => {
     renderBoard();
-    updateStatus(`${activePlayer.name}'s turn`);
+    updateStatus(`${activePlayer.name} turn`);
   };
 
   return { init, refreshBoard };
 }
 document.addEventListener("DOMContentLoaded", () => {
-  const startGame = Game_Controller("Player ", "AI");
+  const startGame = Game_Controller("Player One", "AI");
   startGame.init();
 
   const refreshButton = document.getElementById("refreshButton");
@@ -345,3 +342,15 @@ document.addEventListener("DOMContentLoaded", () => {
         availableMoves[Math.floor(Math.random() * availableMoves.length)];
       handleCellClick(randomMove.row, randomMove.col); //
     } */
+const cells = document.querySelectorAll(".cell.taken");
+
+cells.forEach((cell) => {
+  const span = cell.querySelector("span");
+  if (
+    span &&
+    (span.textContent.trim() === "X" || span.textContent.trim() === "O")
+  ) {
+    cell.style.animation = "none";
+    cell.style.transition = "none";
+  }
+});
