@@ -35,17 +35,60 @@ h5,
 h6 {
   overflow-wrap: break-word;
 }
+
 :root {
-  --webPageColor: #233142;
+  --webPageColor: #1e1e1e;
+  --square: #2a2a2a;
   --textColor: #e3e3e3;
   --xColor: #f95959;
-  --oColor: #8b4513;
+  --oColor: #59f9b2;
+  --boardColor: #455d7a;
+  --hoverColor: #344861;
+  --refreshButton: #e64545;
+  --typeWriterCursor: #e64545;
 }
 
 body {
   background-color: var(--webPageColor);
   color: var(--textColor);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -60%);
 }
+
+.typewriterHeader h1 {
+  color: #fff;
+  font-family: monospace;
+  overflow: hidden; /* Ensures the content is not revealed until the animation */
+  border-right: 0.15em solid orange; /* The typwriter cursor */
+  white-space: nowrap; /* Keeps the content on a single line */
+  margin: 0 auto; /* Gives that scrolling effect as the typing happens */
+  letter-spacing: 0.15em; /* Adjust as needed */
+  animation: typing 3.5s steps(30, end), blink-caret 0.5s step-end infinite;
+}
+
+/* The typing effect */
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* The typewriter cursor effect */
+@keyframes blink-caret {
+  from,
+  to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: var(--typeWriterCursor);
+  }
+}
+
 .game-container {
   text-align: center;
   font-family: Arial, sans-serif;
@@ -55,8 +98,8 @@ body {
 }
 .board {
   display: grid;
-  grid-template-columns: repeat(3, 100px);
-  grid-gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 0.8rem;
   margin: 20px auto;
   width: 310px;
 }
@@ -68,12 +111,56 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40px;
+  font-size: 3rem;
   cursor: pointer;
+  background-color: var(--square);
+  border-radius: 1rem;
+  border: none;
+  color: var(--xColor);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
 }
+
+.cell.x {
+  color: var(--xColor);
+}
+.cell.o {
+  color: var(--oColor);
+}
+
+.cell:hover {
+  border-color: #3498db;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+/* .cell:hover::before {
+  transform: scale(1.1);
+  box-shadow: 0 0 15px #ffee10;
+}
+
+.cell:hover::after {
+  color: #ffee10;
+  box-shadow: 0 0 5px #ffee10;
+  text-shadow: 0 0 5px #ffee10;
+}
+ */
 #refreshButton {
-  position: relative;
+  background-color: var(--xColor);
+  color: var(--textColor);
+  border: none;
   cursor: pointer;
-  width: 10%;
-  transform: translate(90%, 50%);
+  width: 100%;
+  padding: 0.5rem;
+  margin-left: 0.2rem;
+  margin-right: 0.2rem;
+  align-items: center;
+  justify-content: center;
+  font-size: none;
+  border-radius: 0.5rem;
+
+  transition: background-color 0.3 ease;
+}
+#refreshButton:hover {
+  background-color: var(--refreshButton);
 }

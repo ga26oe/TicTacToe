@@ -129,6 +129,18 @@ function Game_Controller(playerOneName = "Player One", playerTwoName = "AI") {
         const cellElement = document.createElement("div");
         cellElement.classList.add("cell");
         cellElement.textContent = cell;
+
+        if (cell === "X") {
+          cellElement.classList.add("x");
+        } else if (cell === "O") {
+          cellElement.classList.add("o");
+        }
+
+        /*         if (cell !== "") {
+          cellElement.classList.add("taken");
+          cellElement.classList.add(cell.toLowerCase());
+        } */
+
         cellElement.addEventListener("click", () =>
           handleCellClick(rowIndex, colIndex)
         );
